@@ -1,0 +1,22 @@
+{
+  "name": "psychonauts-node-web-scrapper",
+  "version": "1.0.0",
+  "description": "a node app for scrapping psychonauts Wiki Data",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thamudi/psychonauts-node-web-scrapper.git"
+  },
+  "author": "thamudi (Tamim Hamoudi)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thamudi/psychonauts-node-web-scrapper/issues"
+  },
+  "homepage": "https://github.com/thamudi/psychonauts-node-web-scrapper#readme",
+  "dependencies": {
+    "puppeteer": "^9.1.1"
+  }
+}
