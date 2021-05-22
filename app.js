@@ -22,6 +22,11 @@ const puppeteer = require('puppeteer');
    7. loop over
    8. profit 
 
+- Some helpful links:
+
+https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-page
+https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageselector
+https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll
 
 ================================================================================================
 ================================================================================================
