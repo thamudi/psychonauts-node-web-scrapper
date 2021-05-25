@@ -1,40 +1,34 @@
 'use strict';
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+const { promisify } = require('util')
 
-// TODO: Alright, so before writing any stupid code tamim we will need to outline some things
+const writeFileAsync = promisify(fs.writeFile);
 
 /*
-================================================================================================
-================================================================================================
-============================================ GOALS =============================================
-
-1- We need to go to the Characters page [check]
-2- We need to access the page [check]
-3- Find the place containing all of the Data we want, in this case it the container containing 
-   the members data (name, link) [check]
-4- Get An array of all the containers [check]
-   1. Loop through this containers [check]
-   2. find all the links [check]
-   3. go to the page [check]
-   4. get the image and the name of the character
-   5. save the image in a folder with the character's name
-   6. go back to the previous page again; basically reset to the Characters Page
-   7. loop over
-   8. profit 
-
+===========================================================================
 - Some helpful links:
 
 https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-class-page
 https://pptr.dev/#?product=Puppeteer&version=v9.1.1&show=api-pageselector
 https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll
 
-================================================================================================
-================================================================================================
-================================================================================================
+===========================================================================
 */
 
+// const dataSourceStatus = async (dataSourceValue, page) => {
+//    const status = await page.$$eval('.pi-item.pi-data.pi-item-spacing', elements => {
+//       return elements.filter(data => {
+//          return data.getAttribute('data-source') === dataSourceValue;
+//       }).length > 0 ? true : false;
+//    });
+
+//    return status;
+// }
+
 const scrapeData = async (url) => {
-   const browser = await puppeteer.launch({ headless: false });
+   const browser = await puppeteer.launch();
    const page = await browser.newPage();
 
    await page.goto(url);
@@ -50,28 +44,79 @@ const scrapeData = async (url) => {
             }
          }).filter(obj => !(obj.name.match(/(category|list)/gi)))
       );
+      ``
 
-
-      console.log(queriedPageMembers);
+      console.log(`total`, queriedPageMembers.length);
 
       const data = [];
-
+      let count = 0;
       for (const { name, link } of queriedPageMembers) {
          await Promise.all([
             page.waitForNavigation(),
             page.goto(link),
-            page.waitForSelector('.pi-item.pi-item-spacing.pi-title'),
          ]);
 
-         const info = await page.$eval('.pi-item.pi-item-spacing.pi-title', e => e.innerText);
+         try {
 
-         data.push({
-            name: name,
-            information: info,
-         });
+            // const genderDataSource = await dataSourceStatus('gender', page);
+
+            // const psiPowersDataSource = await dataSourceStatus('psi_powers', page);
+
+            const genderDataSource = await page.$$eval('.pi-item.pi-data.pi-item-spacing', elements => {
+               return elements.filter(data => {
+                  return data.getAttribute('data-source') === 'gender';
+               }).length > 0 ? true : false;
+            });
+
+            const psiPowersDataSource = await page.$$eval('.pi-item.pi-data.pi-item-spacing', elements => {
+               return elements.filter(data => {
+                  return data.getAttribute('data-source') === 'psi_powers';
+               }).length > 0 ? true : false;
+            });
+
+
+            if (genderDataSource && psiPowersDataSource) {
+
+               const genderChildren = await page.$$eval('.pi-item.pi-data.pi-item-spacing', elements => {
+                  return elements.filter(data => {
+                     return data.getAttribute('data-source') === 'gender';
+                  });
+               });
+
+               console.log(genderChildren);
+               browser.close();
+
+               // Get the name of the character
+               const fileName = name.toLowerCase().split(' ').join('-');
+               // Set the file path with the file image name
+               const filePath = path.join(__dirname, `./images/${fileName}.png`);
+               // Get the image src from the page
+               const imgSrc = await page.$eval('.pi-image-thumbnail', e => e.getAttribute('src'));
+               // Go src
+               const viewSource = await page.goto(imgSrc);
+               // buffer the view source
+               const buffer = await viewSource.buffer();
+               // download the image to the file Path
+               await writeFileAsync(filePath, buffer)
+
+
+               // Push data to the an array of data
+               data.push({
+                  name: name,
+                  imgSrc: imgSrc,
+               });
+               count += 1;
+               console.log(count);
+            }
+         } catch (error) {
+            console.log(error);
+         }
       }
 
-      console.log(data);
+      // write everything into a JSON file
+      const jsonData = JSON.stringify(data);
+      const jsonFilePath = path.join(__dirname, `./data/characters.json`);
+      await writeFileAsync(jsonFilePath, jsonData);
 
    }
 
