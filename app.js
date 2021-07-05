@@ -28,7 +28,7 @@ https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll
 // }
 
 const scrapeData = async (url) => {
-   const browser = await puppeteer.launch();
+   const browser = await puppeteer.launch({ headless: true });
    const page = await browser.newPage();
 
    await page.goto(url);
@@ -84,7 +84,7 @@ const scrapeData = async (url) => {
                });
 
                console.log(genderChildren);
-               browser.close();
+               // browser.close();
 
                // Get the name of the character
                const fileName = name.toLowerCase().split(' ').join('-');
